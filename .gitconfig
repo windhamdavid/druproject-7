@@ -1,0 +1,17 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+	ignorecase = true
+[remote "drup"]
+	url = http://git.drupal.org/project/drupal.git
+	fetch = +refs/heads/*:refs/remotes/drup/*
+[branch "7.x"]
+	remote = drup
+	merge = refs/heads/7.x
+[branch "master"]
+	remote = drup
+[remote "hub"]
+	url = git@github.com:windhamdavid/druproject-7.git
+	fetch = +refs/heads/*:refs/remotes/hub/*

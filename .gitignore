@@ -1,0 +1,15 @@
+Icon?
+.DS_Store?
+Thumbs.db
+
+*.jar
+*.rar
+*.tar
+*.zip
+*.log
+*.sql
+
+sites/default/settings.php
+sites/default/files/
+sites/all/files/
+sites/all/private/
