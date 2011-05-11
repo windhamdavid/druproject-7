@@ -201,7 +201,7 @@ function drupal_get_form($form_id) {
  *   can implement hook_forms(), which maps different $form_id values to the
  *   proper form constructor function. Examples may be found in node_forms(),
  *   search_forms(), and user_forms().
- * @param &$form_state
+ * @param $form_state
  *   An array which stores information about the form. This is passed as a
  *   reference so that the caller can use it to examine what in the form changed
  *   when the form submission process is complete. Furthermore, it may be used
@@ -2061,7 +2061,7 @@ function _form_button_was_clicked($element, &$form_state) {
  * - form_build_id
  * - op
  *
- * @param &$form_state
+ * @param $form_state
  *   A keyed array containing the current state of the form, including
  *   submitted form values; altered by reference.
  */
@@ -3377,7 +3377,7 @@ function form_validate_machine_name(&$element, &$form_state) {
  * Adds fieldsets to the specified group or adds group members to this
  * fieldset.
  *
- * @param &$element
+ * @param $element
  *   An associative array containing the properties and children of the
  *   fieldset. Note that $element must be taken by reference here, so processed
  *   child elements are taken over into $form_state.
@@ -3955,7 +3955,7 @@ function theme_form_element_label($variables) {
  *
  * Adds 'required' and 'error' classes as needed.
  *
- * @param &$element
+ * @param $element
  *   The form element.
  * @param $name
  *   Array of new class names to be added.
@@ -4015,7 +4015,9 @@ function _form_set_class(&$element, $class = array()) {
  * Note: if the batch 'title', 'init_message', 'progress_message', or
  * 'error_message' could contain any user input, it is the responsibility of
  * the code calling batch_set() to sanitize them first with a function like
- * check_plain() or filter_xss().
+ * check_plain() or filter_xss(). Furthermore, if the batch operation
+ * returns any user input in the 'results' or 'message' keys of $context,
+ * it must also sanitize them first.
  *
  * Sample batch operations:
  * @code
@@ -4038,8 +4040,8 @@ function _form_set_class(&$element, $class = array()) {
  *   //   and the batch processing can continue to the next operation.
  *
  *   $node = node_load(array('uid' => $uid, 'type' => $type));
- *   $context['results'][] = $node->nid . ' : ' . $node->title;
- *   $context['message'] = $node->title;
+ *   $context['results'][] = $node->nid . ' : ' . check_plain($node->title);
+ *   $context['message'] = check_plain($node->title);
  * }
  *
  * // More advanced example: multi-step operation - load all nodes, five by five
@@ -4058,10 +4060,10 @@ function _form_set_class(&$element, $class = array()) {
  *     ->execute();
  *   foreach ($result as $row) {
  *     $node = node_load($row->nid, NULL, TRUE);
- *     $context['results'][] = $node->nid . ' : ' . $node->title;
+ *     $context['results'][] = $node->nid . ' : ' . check_plain($node->title);
  *     $context['sandbox']['progress']++;
  *     $context['sandbox']['current_node'] = $node->nid;
- *     $context['message'] = $node->title;
+ *     $context['message'] = check_plain($node->title);
  *   }
  *   if ($context['sandbox']['progress'] != $context['sandbox']['max']) {
  *     $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['max'];

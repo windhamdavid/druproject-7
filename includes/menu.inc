@@ -2321,11 +2321,11 @@ function menu_set_active_trail($new_trail = NULL) {
       }
       list($key, $curr) = each($tree);
     }
-    // Make sure the current page is in the trail (needed for the page title),
-    // if the link's type allows it to be shown in the breadcrumb. Also exclude
-    // it if we are on the front page.
+    // Make sure the current page is in the trail to build the page title, by
+    // appending either the preferred link or the menu router item for the
+    // current page. Exclude it if we are on the front page.
     $last = end($trail);
-    if ($last['href'] != $preferred_link['href'] && ($preferred_link['type'] & MENU_VISIBLE_IN_BREADCRUMB) == MENU_VISIBLE_IN_BREADCRUMB && !drupal_is_front_page()) {
+    if ($last['href'] != $preferred_link['href'] && !drupal_is_front_page()) {
       $trail[] = $preferred_link;
     }
   }
@@ -2907,18 +2907,26 @@ function _menu_delete_item($item, $force = FALSE) {
 }
 
 /**
- * Save a menu link.
+ * Saves a menu link.
+ *
+ * After calling this function, rebuild the menu cache using
+ * menu_cache_clear_all().
  *
  * @param $item
- *   An array representing a menu link item. The only mandatory keys are
- *   link_path and link_title. Possible keys are:
- *   - menu_name: Default is navigation
- *   - weight: Default is 0
- *   - expanded: Whether the item is expanded.
- *   - options: An array of options, see l() for more.
- *   - mlid: Set to an existing value, or 0 or NULL to insert a new link.
- *   - plid: The mlid of the parent.
- *   - router_path: The path of the relevant router item.
+ *   An associative array representing a menu link item, with elements:
+ *   - link_path: (required) The path of the menu item, which should be
+ *     normalized first by calling drupal_get_normal_path() on it.
+ *   - link_title: (required) Title to appear in menu for the link.
+ *   - menu_name: (optional) The machine name of the menu for the link.
+ *     Defaults to 'navigation'.
+ *   - weight: (optional) Integer to determine position in menu. Default is 0.
+ *   - expanded: (optional) Boolean that determines if the item is expanded.
+ *   - options: (optional) An array of options, see l() for more.
+ *   - mlid: (optional) Menu link identifier, the primary integer key for each
+ *     menu link. Can be set to an existing value, or to 0 or NULL
+ *     to insert a new link.
+ *   - plid: (optional) The mlid of the parent.
+ *   - router_path: (optional) The path of the relevant router item.
  *
  * @return
  *   The mlid of the saved menu link, or FALSE if the menu link could not be

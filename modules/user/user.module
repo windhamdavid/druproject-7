@@ -417,6 +417,9 @@ function user_save($account, $edit = array(), $category = 'account') {
       // Avoid overwriting an existing password with a blank password.
       unset($edit['pass']);
     }
+    if (isset($edit['mail'])) {
+      $edit['mail'] = trim($edit['mail']);
+    }
 
     // Load the stored entity, if any.
     if (!empty($account->uid) && !isset($account->original)) {
@@ -562,7 +565,6 @@ function user_save($account, $edit = array(), $category = 'account') {
       if (!isset($edit['created'])) {
         $edit['created'] = REQUEST_TIME;
       }
-      $edit['mail'] = trim($edit['mail']);
       $success = drupal_write_record('users', $edit);
       if ($success === FALSE) {
         // On a failed INSERT some other existing user's uid may be returned.
@@ -653,7 +655,6 @@ function user_validate_name($name) {
  *   If the address is valid, nothing is returned.
  */
 function user_validate_mail($mail) {
-  $mail = trim($mail);
   if (!$mail) {
     return t('You must enter an e-mail address.');
   }
@@ -1201,6 +1202,11 @@ function user_account_form_validate($form, &$form_state) {
       }
     }
 
+    // Trim whitespace from mail, to prevent confusing 'e-mail not valid'
+    // warnings often caused by cutting and pasting.
+    $mail = trim($form_state['values']['mail']);
+    form_set_value($form['account']['mail'], $mail, $form_state);
+
     // Validate the e-mail address, and check if it is taken by an existing user.
     if ($error = user_validate_mail($form_state['values']['mail'])) {
       form_set_error('mail', $error);
@@ -1478,6 +1484,7 @@ function template_preprocess_user_picture(&$variables) {
 function theme_user_list($variables) {
   $users = $variables['users'];
   $title = $variables['title'];
+  $items = array();
 
   if (!empty($users)) {
     foreach ($users as $user) {

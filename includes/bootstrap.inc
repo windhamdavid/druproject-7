@@ -1250,6 +1250,10 @@ function drupal_unpack($obj, $field = 'data') {
  * then rearrange the string as necessary for the language (e.g., in Spanish,
  * it might be "blog de @name").
  *
+ * During the Drupal installation phase, some resources used by t() wil not be
+ * available to code that needs localization. See st() and get_t() for
+ * alternatives.
+ *
  * @param $string
  *   A string containing the English string to translate.
  * @param $args
@@ -1273,6 +1277,8 @@ function drupal_unpack($obj, $field = 'data') {
  * @return
  *   The translated string.
  *
+ * @see st()
+ * @see get_t()
  * @ingroup sanitization
  */
 function t($string, array $args = array(), array $options = array()) {
@@ -1515,8 +1521,8 @@ function watchdog($type, $message, $variables = array(), $severity = WATCHDOG_NO
  * messages without clearing them.
  *
  * @param $message
- *   The message should begin with a capital letter and always ends with a
- *   period '.'.
+ *   The message to be displayed to the user. For consistency with other
+ *   messages, it should begin with a capital letter and end with a period.
  * @param $type
  *   The type of the message. One of the following values are possible:
  *   - 'status'
@@ -2235,8 +2241,30 @@ function drupal_installation_attempted() {
 }
 
 /**
- * Return the name of the localization function. Use in code that needs to
- * run both during installation and normal operation.
+ * Returns the name of the proper localization function.
+ *
+ * get_t() exists to support localization for code that might run during
+ * the installation phase, when some elements of the system might not have
+ * loaded.
+ *
+ * This would include implementations of hook_install(), which could run
+ * during the Drupal installation phase, and might also be run during
+ * non-installation time, such as while installing the module from the the
+ * module administration page.
+ *
+ * Example useage:
+ * @code
+ *   $t = get_t();
+ *   $translated = $t('translate this');
+ * @endcode
+ *
+ * Use t() if your code will never run during the Drupal installation phase.
+ * Use st() if your code will only run during installation and never any other
+ * time. Use get_t() if your code could run in either circumstance.
+ *
+ * @see t()
+ * @see st()
+ * @ingroup sanitization
  */
 function get_t() {
   static $t;
@@ -2292,6 +2320,9 @@ function drupal_language_types() {
  * Return true if there is more than one language enabled.
  */
 function drupal_multilingual() {
+  // The "language_count" variable stores the number of enabled languages to
+  // avoid unnecessarily querying the database when building the list of
+  // enabled languages on monolingual sites.
   return variable_get('language_count', 1) > 1;
 }
 
@@ -2363,6 +2394,8 @@ function language_default($property = NULL) {
  *   base_path() returns "/drupalfolder/".
  * - http://example.com/path/alias (which is a path alias for node/306) returns
  *   "path/alias" as opposed to the internal path.
+ * - http://example.com/index.php returns an empty string (meaning: front page).
+ * - http://example.com/index.php?page=1 returns an empty string.
  *
  * @return
  *   The requested Drupal URL path.
@@ -2384,11 +2417,19 @@ function request_path() {
     $path = $_GET['q'];
   }
   elseif (isset($_SERVER['REQUEST_URI'])) {
-    // This is a request using a clean URL. Extract the path from REQUEST_URI.
+    // This request is either a clean URL, or 'index.php', or nonsense.
+    // Extract the path from REQUEST_URI.
     $request_path = strtok($_SERVER['REQUEST_URI'], '?');
     $base_path_len = strlen(rtrim(dirname($_SERVER['SCRIPT_NAME']), '\/'));
     // Unescape and strip $base_path prefix, leaving q without a leading slash.
     $path = substr(urldecode($request_path), $base_path_len + 1);
+    // If the path equals the script filename, either because 'index.php' was
+    // explicitly provided in the URL, or because the server added it to
+    // $_SERVER['REQUEST_URI'] even when it wasn't provided in the URL (some
+    // versions of Microsoft IIS do this), the front page should be served.
+    if ($path == basename($_SERVER['PHP_SELF'])) {
+      $path = '';
+    }
   }
   else {
     // This is the front page.

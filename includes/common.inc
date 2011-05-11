@@ -914,7 +914,9 @@ function drupal_http_request($url, array $options = array()) {
     return $result;
   }
   // Parse response headers from the response body.
-  list($response, $result->data) = explode("\r\n\r\n", $response, 2);
+  // Be tolerant of malformed HTTP responses that separate header and body with
+  // \n\n or \r\r instead of \r\n\r\n.
+  list($response, $result->data) = preg_split("/\r\n\r\n|\n\n|\r\r/", $response, 2);
   $response = preg_split("/\r\n|\n|\r/", $response);
 
   // Parse the response status line.
@@ -6308,7 +6310,7 @@ function drupal_array_set_nested_value(array &$array, array $parents, $value, $f
  *   The array from which to get the value.
  * @param $parents
  *   An array of parent keys of the value, starting with the outermost key.
- * @param &$key_exists
+ * @param $key_exists
  *   (optional) If given, an already defined variable that is altered by
  *   reference.
  *

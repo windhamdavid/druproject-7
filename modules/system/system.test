@@ -1596,6 +1596,35 @@ class TokenReplaceTestCase extends DrupalWebTestCase {
   }
 
   /**
+   * Test whether token-replacement works in various contexts.
+   */
+  function testSystemTokenRecognition() {
+    global $language;
+
+    // Generate prefixes and suffixes for the token context.
+    $tests = array(
+      array('prefix' => 'this is the ', 'suffix' => ' site'),
+      array('prefix' => 'this is the', 'suffix' => 'site'),
+      array('prefix' => '[', 'suffix' => ']'),
+      array('prefix' => '', 'suffix' => ']]]'),
+      array('prefix' => '[[[', 'suffix' => ''),
+      array('prefix' => ':[:', 'suffix' => '--]'),
+      array('prefix' => '-[-', 'suffix' => ':]:'),
+      array('prefix' => '[:', 'suffix' => ']'),
+      array('prefix' => '[site:', 'suffix' => ':name]'),
+      array('prefix' => '[site:', 'suffix' => ']'),
+    );
+
+    // Check if the token is recognized in each of the contexts.
+    foreach ($tests as $test) {
+      $input = $test['prefix'] . '[site:name]' . $test['suffix'];
+      $expected = $test['prefix'] . 'Drupal' . $test['suffix'];
+      $output = token_replace($input, array(), array('language' => $language));
+      $this->assertTrue($output == $expected, t('Token recognized in string %string', array('%string' => $input)));
+    }
+  }
+
+  /**
    * Tests the generation of all system site information tokens.
    */
   function testSystemSiteTokenReplacement() {
@@ -2149,3 +2178,37 @@ class SystemAuthorizeCase extends DrupalWebTestCase {
     $this->assertText('System Test Username');
   }
 }
+
+/**
+ * Test the handling of requests containing 'index.php'.
+ */
+class SystemIndexPhpTest extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Index.php handling',
+      'description' => "Test the handling of requests containing 'index.php'.",
+      'group' => 'System',
+    );
+  }
+
+  function setUp() {
+    parent::setUp();
+  }
+
+  /**
+   * Test index.php handling.
+   */
+  function testIndexPhpHandling() {
+    $index_php = $GLOBALS['base_url'] . '/index.php';
+
+    $this->drupalGet($index_php, array('external' => TRUE));
+    $this->assertResponse(200, t('Make sure index.php returns a valid page.'));
+
+    $this->drupalGet($index_php, array('external' => TRUE, 'query' => array('q' => 'user')));
+    $this->assertResponse(200, t('Make sure index.php?q=user returns a valid page.'));
+
+    $this->drupalGet($index_php .'/user', array('external' => TRUE));
+    $this->assertResponse(404, t("Make sure index.php/user returns a 'page not found'."));
+  }
+}
+
