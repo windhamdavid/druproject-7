@@ -1,0 +1,8 @@
+name = NDPC 5 
+description = html5 version
+
+core = 7.x
+engine = phptemplate
+screenshot = img/screenshot.png
+
+stylesheets[all][] = css/style.css

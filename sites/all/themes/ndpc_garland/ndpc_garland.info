@@ -1,0 +1,7 @@
+name = ndpc_garland
+description = Tableless, recolorable, multi-column, fluid width theme (based on Garland).
+version = VERSION
+core = 7.x
+engine = phptemplate
+stylesheets[all][] = style.css
+stylesheets[print][] = print.css

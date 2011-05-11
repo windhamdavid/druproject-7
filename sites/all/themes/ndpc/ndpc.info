@@ -1,0 +1,18 @@
+name = NDPC
+description = undefined
+
+core = 7.x
+engine = phptemplate
+screenshot = img/screenshot.png
+
+stylesheets[all][] = css/style.css
+stylesheets[all][] = css/grid.css
+stylesheets[print][] = css/print.css
+
+scripts[] = js/init.js
+
+regions[left] = Left sidebar
+regions[right] = Right sidebar
+regions[content] = Content
+regions[header] = Header
+regions[footer] = Footer
