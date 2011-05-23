@@ -56,9 +56,10 @@ function update_script_selection_form($form, &$form_state) {
   foreach ($updates as $module => $update) {
     if (!isset($update['start'])) {
       $form['start'][$module] = array(
-        '#title' => $module,
-        '#item'  => $update['warning'],
-        '#prefix' => '<div class="warning">',
+        '#type' => 'item',
+        '#title' => $module . ' module',
+        '#markup'  => $update['warning'],
+        '#prefix' => '<div class="messages warning">',
         '#suffix' => '</div>',
       );
       $incompatible_updates_exist = TRUE;
@@ -383,6 +384,10 @@ if (empty($op) && update_access_allowed()) {
 
   // Set up theme system for the maintenance page.
   drupal_maintenance_theme();
+
+  // Rebuild the registry to ensure that removed hooks in modules do not result
+  // in undefined function errors and that newly defined hooks are called.
+  registry_rebuild();
 
   // Check the update requirements for Drupal.
   update_check_requirements();

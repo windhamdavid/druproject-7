@@ -24,9 +24,9 @@
  * @see profile_user_load()
  */
 function hook_user_load($users) {
-  $result = db_query('SELECT * FROM {my_table} WHERE uid IN (:uids)', array(':uids' => array_keys($users)));
+  $result = db_query('SELECT uid, foo FROM {my_table} WHERE uid IN (:uids)', array(':uids' => array_keys($users)));
   foreach ($result as $record) {
-    $users[$record->uid]->foo = $result->foo;
+    $users[$record->uid]->foo = $record->foo;
   }
 }
 
@@ -364,6 +364,25 @@ function hook_user_view_alter(&$build) {
 
   // Add a #post_render callback to act on the rendered HTML of the user.
   $build['#post_render'][] = 'my_module_user_post_render';
+}
+
+/**
+ * Inform other modules that a user role is about to be saved.
+ *
+ * Modules implementing this hook can act on the user role object before
+ * it has been saved to the database.
+ *
+ * @param $role
+ *   A user role object.
+ *
+ * @see hook_user_role_insert()
+ * @see hook_user_role_update()
+ */
+function hook_user_role_presave($role) {
+  // Set a UUID for the user role if it doesn't already exist
+  if (empty($role->uuid)) {
+    $role->uuid = uuid_uuid();
+  }
 }
 
 /**
